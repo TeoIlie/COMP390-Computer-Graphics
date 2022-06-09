@@ -1,9 +1,14 @@
-//  main.cpp
-//  TME_1_2DGraphics: Program 1
-//
-//  Teodor Ilie, 3564886
-//  This program draws two houses - the first without anti-aliasing, and the second with anti-aliasing.
-//  This is the main C++ file.
+/*  Athabasca University
+    Comp390 - Introduction to Computer Graphics
+    
+    TME_1: 2DGraphics: Program 1
+
+    @author: Teodor Ilie, 3564886
+    @date: June 9, 2022
+ 
+    This program draws two houses - the first without anti-aliasing, and the second with anti-aliasing.
+    This is the main C++ file.
+*/
 
 #include <stdlib.h>
 #include <fstream>
@@ -19,45 +24,51 @@
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+
 #else
 #include <GL/glut.h>
 #include <GL/glu.h>
 #include <GL/gl.h>
 #endif
 
+
+// initialize the display
 void initDisplay(int width, int height, std::string title) {
     
-    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH) ;
-    glutInitWindowSize(500, 500);
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize(width, height);
     glutInitWindowPosition(100, 100);
 
-    int windowHandle = glutCreateWindow("Program 1: Anti-aliasing");
-    glutSetWindow(windowHandle);
+    const char *display_title = title.c_str();
+    int window_handle = glutCreateWindow(display_title);
+    glutSetWindow(window_handle);
     
-    glClearColor (1.0, 1.0, 1.0, 0.0); // Set display-window color to white.
+    glClearColor (1.0, 1.0, 1.0, 0.0); // set background color to white.
 }
 
 
+//draw house without anti-aliasing
 void drawHouse1() {
     // draw rectangle with GL_POLYGON
     // set polygon mode to GL_LINE first
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glBegin(GL_POLYGON);
-        glVertex2f(-2.5f, 2.5f);
-        glVertex2f(-2.0f, 0.5f);
-        glVertex2f( 0.0f, 1.0f);
-        glVertex2f(-0.5f, 3.0f);
+        glVertex2f(-2.2f, 2.5f);
+        glVertex2f(-1.7f, 0.5f);
+        glVertex2f( 0.3f, 1.0f);
+        glVertex2f(-0.2f, 3.0f);
     glEnd ();
     
     //draw triangle with GL_LINE_LOOP
     glBegin(GL_LINE_LOOP);
-        glVertex3f(-1.75f, 3.50f, 0.0f);
-        glVertex3f(-3.00f, 2.36f, 0.0f);
-        glVertex3f( 0.00f, 3.14f, 0.0f);
+        glVertex2f(-1.45f, 3.50f);
+        glVertex2f(-2.7f, 2.36f);
+        glVertex2f( 0.3f, 3.14f);
     glEnd ();
 }
 
 
+//draw house with anti-aliasing
 void drawHouse2() {
     // enable anti-aliasing methods
     glEnable(GL_LINE_SMOOTH);
@@ -68,19 +79,20 @@ void drawHouse2() {
     // set polygon mode to GL_LINE first
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glBegin(GL_POLYGON);
-        glVertex2f(-1.5f, -1.5f);
-        glVertex2f(-1.0f, -3.5f);
-        glVertex2f( 1.0f, -3.0f);
-        glVertex2f( 0.5f, -1.0f);
+        glVertex2f(-1.2f, -1.5f);
+        glVertex2f(-0.7f, -3.5f);
+        glVertex2f( 1.3f, -3.0f);
+        glVertex2f( 0.8f, -1.0f);
     glEnd ();
     
     //draw triangle with GL_LINE_LOOP
     glBegin(GL_LINE_LOOP);
-        glVertex3f(-0.75f, -0.50f, 0.0f);
-        glVertex3f(-2.00f, -1.64f, 0.0f);
-        glVertex3f( 1.00f, -0.86f, 0.0f);
+        glVertex2f(-0.45f, -0.50f);
+        glVertex2f(-1.70f, -1.64f);
+        glVertex2f( 1.30f, -0.86f);
     glEnd ();
 }
+
 
 // draw function for houses
 void drawHouses() {
@@ -101,20 +113,24 @@ void drawHouses() {
     glFlush ();
 }
 
+
 //reshape function
 void reshape(int w, int h) {
     glViewport(0, 0, (GLsizei) w, (GLsizei) h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustum(-1.0, 1.0, -1.0, 1.0, 1.5, 40.0);
+    glFrustum(-1.0, 1.0, -1.0, 1.0, 1.5, 50.0);
     glMatrixMode(GL_MODELVIEW);
 }
 
+
 // main method
 int main (int argc, char** argv) {
+    // initialize glut
+    glutInit (&argc, argv);
     
-    glutInit (&argc, argv); // initialize glut
-    initDisplay(400, 400, "Teodor Ilie, 3564886 - Program 1: Anti-aliasing"); //initialize display
+    //initialize display
+    initDisplay(500, 500, "Teodor Ilie, 3564886 - Program 1: Anti-aliasing");
 
     glutDisplayFunc(drawHouses);
     glutReshapeFunc(reshape);
