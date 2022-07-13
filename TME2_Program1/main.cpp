@@ -2,12 +2,12 @@
     Comp390 - Introduction to Computer Graphics
     
     TME_2: 3DGraphics: Program 1
-
+ 
     @author: Teodor Ilie, 3564886
-    @date: July 8, 2022
+    @date: July 12, 2022
  
     This program draws, in 3D, the ground (green), the body (red), and the top (blue).
-    It does this using display lists.
+    It does this using a hierarchical structure of display lists.
     The ground is a simple rectangle, the body is a cube consisting of six squares,
     and the top is a pyramid consisting of four triangles.
 */
@@ -33,23 +33,21 @@
 #include <GL/gl.h>
 #endif
 
-// main_list will be populated later
-GLuint main_list;
 
-// save cube coordinates for reuse by single_square method
-typedef GLint cube_list [3];
-
+typedef GLfloat list_3D [3];
 // The local coordinates of the far-left-lower and near-right-upper corners of the body are
 // {0,0,0}, and {1,1,1}, respectively.
-cube_list cube [8] = { {0,0,0}, {1,1,0}, {1,0,0}, {0,1,0}, {0,1,1}, {0,0,1}, {1,0,1}, {1,1,1} };
-
-// save pyramid coordinates for reuse by single_triangle method
-typedef GLfloat pyramid_list[3];
+list_3D square_coords [4] = {{0.0, 1.0, 1.0}, {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}};
 
 // The coordinates of the far-left and near-right corners of the pyramid are
 // {-0.2, 1.0, -0.2} and {1.2, 1.0, 1.2}, respectively.
 // The coordinate of the tip of the pyramid is {0.5, 1.5, 0.5}.
-pyramid_list pyramid [5] = { {-0.2, 1.0, -0.2}, {1.2,1,-0.2}, {1.2, 1.0, 1.2}, {-0.2,1,1.2}, {0.5, 1.5, 0.5} };
+
+list_3D triangle_coords [3] = {{-0.2, 1.0, 1.2}, {1.2, 1.0, 1.2}, {0.5, 1.5, 0.5}};
+
+// The far-left and near-right corners of the ground are at
+// {-1.0, 0.0, -0.5} and {2.0, 0.0, 2.5}, respectively.
+float bottom_coords [4][3] = {{-1.0, 0.0, 2.5}, {2.0, 0.0, 2.5}, {2.0, 0.0, -0.5}, {-1.0, 0.0, -0.5}};
 
 
 // initialize the display
@@ -58,7 +56,6 @@ void initDisplay(int width, int height, std::string title) {
     glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(width, height);
     glutInitWindowPosition(100, 100);
-
     const char *display_title = title.c_str();
     int window_handle = glutCreateWindow(display_title);
     glutSetWindow(window_handle);
@@ -67,98 +64,158 @@ void initDisplay(int width, int height, std::string title) {
 }
 
 
-// draw a triangle given 3 vertices
-void single_triangle (GLint pos1, GLint pos2, GLint pos3) {
-    glBegin (GL_LINE_LOOP);
-        glVertex3fv (pyramid[pos1]);
-        glVertex3fv (pyramid[pos2]);
-        glVertex3fv (pyramid[pos3]);
-    glEnd();
-}
-
-
-// draw the entire blue top pyramid, made up of 4 triangles
-void top_pyramid () {
-    // set color to blue
-    glColor3f(0.0, 0.0, 1.0);
-    
-    // individually draw each triangle
-    single_triangle(4, 3, 0);
-    single_triangle(4, 2, 3);
-    single_triangle(4, 1, 2);
-    single_triangle(4, 0, 1);
-}
-
-
-// draw a square given 4 vertices
-void single_square (GLint pos1, GLint pos2, GLint pos3, GLint pos4) {
-    glBegin (GL_LINE_LOOP);
-        glVertex3iv (cube[pos1]);
-        glVertex3iv (cube[pos2]);
-        glVertex3iv (cube[pos3]);
-        glVertex3iv (cube[pos4]);
-    glEnd();
-}
-
-
-// draw the entire middle red body, made up of 6 squares
-void middle_body () {
-    // set color to red
-    glColor3f(1.0, 0.0, 0.0);
-    
-    // individually draw each square
-    single_square (1, 3, 4, 7);
-    single_square (0, 5, 6, 2);
-    single_square (2, 1, 7, 6);
-    single_square (4, 5, 6, 7);
-    single_square (0, 2, 1, 3);
-    single_square (0, 3, 4, 5);
-}
-
-
-// draw the bottom square; the ground
-// The far-left and near-right corners of the ground are at
-// {-1.0, 0.0, -0.5} and {2.0, 0.0, 2.5}, respectively.
-void bottom_ground(){
-    //set color to green
-    glColor3f(0.0, 1.0, 0.0);
-    
-    glBegin (GL_LINE_LOOP);
-        glVertex3f (-1.0, 0.0, 2.5);
-        glVertex3f (2.0, 0.0, 2.5);
-        glVertex3f (2.0, 0.0, -0.5);
-        glVertex3f (-1.0, 0.0, -0.5);
-    glEnd();
-}
-
-
-// initialize the display list
-void initList() {
-    //glGenLists generates an empty display list identified by main_list
-    main_list = glGenLists(1);
-    
-    // create the main_list display list using glNewList
-    // constant GL_COMPILE only compiles commands, without executing them
-    glNewList(main_list, GL_COMPILE);
-        //draw ground
-        bottom_ground();
-        //draw body
-        middle_body();
-        //draw pyramid
-        top_pyramid();
-    glEndList();
-    
-}
-
-
 // render method
 void render() {
+    // create variables that will be used to create the heirarchical structure
+    // of the complex display list
+    GLuint single_triangle, single_square, bottom_ground, top_pyramid, middle_body, house;
+    // house has components bottom_ground, top_pyramid, middle_body
+    // top_pyramid has components made from single_triangle
+    // middle_body has components made from single_square
+    
+    // glGenLists generates an empty display list
+    house = glGenLists(1);
+    
+    top_pyramid = glGenLists(1);
+    middle_body = glGenLists(1);
+    bottom_ground = glGenLists(1);
+    
+    single_triangle = glGenLists(1);
+    single_square = glGenLists(1);
+    
     // glPolygonMode sets mode to wire frame or solid
     // constant GL_LINE represents wire frame, which is what we need here
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
-    //glCallList executes a display list
-    glCallList(main_list);
+    // all display lists until 'house' are only compiled, not executed, using GL_COMPILE
+    
+    // display list for a square
+    glNewList(single_square, GL_COMPILE);
+        // set colour to red
+        glColor3f(1.0, 0.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+            glVertex3fv(square_coords[3]);
+            glVertex3fv(square_coords[2]);
+            glVertex3fv(square_coords[1]);
+            glVertex3fv(square_coords[0]);
+        glEnd();
+    glEndList();
+    
+    // display list for a triangle
+    glNewList(single_triangle, GL_COMPILE);
+        //set colour to blue
+        glColor3f(0.0, 0.0, 1.0);
+        glBegin(GL_LINE_LOOP);
+            glVertex3fv(triangle_coords[2]);
+            glVertex3fv(triangle_coords[1]);
+            glVertex3fv(triangle_coords[0]);
+        glEnd();
+    glEndList();
+    
+    // display list for the bottom rectangle
+    glNewList(bottom_ground, GL_COMPILE);
+        // set colour to green
+        glColor3f(0.0, 1.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+            glVertex3fv(bottom_coords[3]);
+            glVertex3fv(bottom_coords[2]);
+            glVertex3fv(bottom_coords[1]);
+            glVertex3fv(bottom_coords[0]);
+        glEnd();
+    glEndList();
+
+    // display list for top_pyramid roof with 4 triangles
+    glNewList(top_pyramid, GL_COMPILE);
+    
+        // forward facing triangle face
+        glCallList(single_triangle);
+    
+        // rear facing triangle face
+        glPushMatrix();
+            glTranslatef(0.5, 0, 0.5);
+            glRotatef(180, 0, 1, 0);
+            glTranslatef(-0.5, 0, -0.5);
+            glCallList(single_triangle);
+        glPopMatrix();
+    
+        // left hand triangle face
+        glPushMatrix();
+            glTranslatef(0.5, 0, 0.5);
+            glRotatef(-90, 0, 1, 0);
+            glTranslatef(-0.5, 0, -0.5);
+            glCallList(single_triangle);
+        glPopMatrix();
+
+        // right hand triangle face
+        glPushMatrix();
+            glTranslatef(0.5, 0, 0.5);
+            glRotatef(90, 0, 1, 0);
+            glTranslatef(-0.5, 0, -0.5);
+            glCallList(single_triangle);
+        glPopMatrix();
+    glEndList();
+
+    // display list for middle cube body with 6 squares
+    glNewList(middle_body, GL_COMPILE);
+    
+        // forward facing square face
+        glCallList(single_square);
+        
+        // rear facing square face
+        glPushMatrix();
+            glTranslatef(0.5, 0, 0.5);
+            glRotatef(180, 0, 1, 0);
+            glTranslatef(-0.5, 0, -0.5);
+            glCallList(single_square);
+        glPopMatrix();
+    
+        // right hand square
+        glPushMatrix();
+            glTranslatef(0.5, 0, 0.5);
+            glRotatef(90, 0, 1, 0);
+            glTranslatef(-0.5, 0, -0.5);
+            glCallList(single_square);
+        glPopMatrix();
+
+        // left hand square
+        glPushMatrix();
+            glTranslatef(0.5, 0, 0.5);
+            glRotatef(-90, 0, 1, 0);
+            glTranslatef(-0.5, 0, -0.5);
+            glCallList(single_square);
+        glPopMatrix();
+    
+        // bottom square
+        glPushMatrix();
+            glTranslatef(0.5, 0.5, 0);
+            glRotatef(90, 1, 0, 0);
+            glTranslatef(-0.5, 0, -0.5);
+            glCallList(single_square);
+        glPopMatrix();
+
+        // top square
+        glPushMatrix();
+            glTranslatef(0.5, 0.5, 0);
+            glRotatef(90, 1, 0, 0);
+            glTranslatef(-0.5, 0, -1.5);
+            glCallList(single_square);
+        glPopMatrix();
+    glEndList();
+    
+    // display list for the whole house
+    // GL_COMPILE_AND_EXECUTE is used to execute all the display_lists after
+    // compiling them using the hierarchical structure explained above
+    glNewList(house, GL_COMPILE_AND_EXECUTE);
+    
+        // draw the bottom gorund
+        glCallList(bottom_ground);
+        // draw the middle body
+        glCallList(middle_body);
+        // draw the top pyramid
+        glCallList(top_pyramid);
+        
+    
+    glEndList();
 }
 
 
@@ -178,7 +235,7 @@ void reshape(int w, int h) {
     glViewport(0, 0, (GLsizei) w, (GLsizei) h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustum(-1.0, 1.0, -1.0, 1.0, 1.5, 40.0);
+    glFrustum(-1, 1, -1, 1, 1.5, 40);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -189,11 +246,9 @@ int main (int argc, char** argv) {
     glutInit (&argc, argv);
     
     // initialize display
-    initDisplay(500, 500, "Teodor Ilie, 3564886 - Program 1: Object Modeling");
+    initDisplay(550, 550, "Teodor Ilie, 3564886 - Program 1: Object Modeling");
     
-    // initialize display list
-    initList();
-
+    // display
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     
