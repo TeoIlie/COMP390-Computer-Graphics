@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
     glutInit( &argc, argv );
     
     // initialize display
-    initDisplay(500, 500, "Teodor Ilie, 3564886 - Program 1: Recursive reflection");
+    initDisplay(500, 500, "Teodor Ilie, 3564886 - Program 2: Shadows");
 
     glutDisplayFunc( display );
     glutReshapeFunc( reshape );
