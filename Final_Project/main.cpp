@@ -16,11 +16,12 @@
         - sailboat made up of 7 polygons for the hull, 2 polygons for the seats,
           and 2 cylinders and 1 triangle for the sail
         - lighthouse made up of 6 cylinders, 1 torus, and 1 cone
-    - Two light sources:
+    - 3 light sources:
         - GL_LIGHT0 is a distant light source which simulates sunlight
           coming from the rear bottom of the scene.
         - GL_LIGHT1 is a point light source which comes from the rear
           top right of the scene and adds a warm tint to the beach scene.
+        - A spotlight originating from the lighthouse.
     - A fog effect with a pinkish beige colours that is concentrated at
       the rear of the scene by setting the OpenGL fog mode to GL_EXP2.
     - A ground made of sand and water
@@ -99,17 +100,26 @@ void initDisplay(std::string title) {
     // set ambient light
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
     
-    // set light 0
+    // set light 0 - sunlight
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_POSITION, light_pos_0);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, sun_light);
     glLightfv(GL_LIGHT0, GL_SPECULAR, sun_light);
     
-    // set light 0
+    // set light 1 - warm light
     glEnable(GL_LIGHT1);
     glLightfv(GL_LIGHT1, GL_POSITION, light_pos_1);
     glLightfv(GL_LIGHT1, GL_DIFFUSE, warm_light);
     glLightfv(GL_LIGHT1, GL_SPECULAR, warm_light);
+    
+    // set light 2 - spotlight
+//    glEnable(GL_LIGHT2);
+    glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, spotlight_cutoff);
+    glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, spotlight_direction);
+    glLightf (GL_LIGHT2, GL_SPOT_EXPONENT, 200);
+    glLightfv(GL_LIGHT2, GL_POSITION, light_pos_2);
+    glLightfv(GL_LIGHT2, GL_DIFFUSE, spotlight_colour);
+    glLightfv(GL_LIGHT2, GL_SPECULAR, spotlight_colour);
     
     // create fog atmospheric effect
     glFogi(GL_FOG_MODE, fog_mode);
