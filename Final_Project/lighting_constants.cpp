@@ -66,12 +66,12 @@ void set_material(int option) {
             
             break;
             
-        // ray
+        // sunset
         case 7:
-            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, ray_specular);
-            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ray_diffuse);
-            glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, ray_shininess);
-            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ray_emissive);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, sunset_specular);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, sunset_diffuse);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, sunset_shininess);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, sunset_emissive);
             break;
             
         // silver metal
@@ -89,10 +89,25 @@ void set_material(int option) {
             glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, red_specular);
             glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, red_shininess);
             break;
+            
+        // wood 3
+        case 10:
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, wood3_specular);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, wood3_diffuse);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, wood3_shininess);
+            break;
+            
+        // beacon
+        case 11:
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, beacon_ambient);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, beacon_specular);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, beacon_shininess);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, beacon_emissive);
+            break;
 
     }
     
-    // set all but the sunlight and rays to non emissive
+    // set all but the sunlight and sunset to non emissive
     if (option != 6 || option != 7)
         glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, non_emissive);
 }
