@@ -31,7 +31,7 @@ public:
     void draw_deck(int pieces);
     void draw_cloud();
     void draw_ground();
-    void draw_sun();
+    void draw_sun(int colour, bool draw_rays);
     void draw_lighthouse();
     
 private:
