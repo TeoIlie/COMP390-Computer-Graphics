@@ -44,6 +44,10 @@ GLfloat boat_seat_coords[4][3] = {{-2.5, 1, -1.5}, {-2.5, 1,  1.5}, { 2.5, 1,  1
 GLfloat ground[4][3] = {{-8,0,-6}, {-8,0,6}, {8,0,6}, {8,0,-6}};
 
 
+//========================================================================
+//                      FINISH MODIFYING THIS SECTION
+//========================================================================
+
 schematics::schematics() {
     // set initial radius and angle
     radius = 1.0;
@@ -112,10 +116,17 @@ void schematics::draw_deck_piece(){
             glNormal3f(0,1,0);
             glVertex3f(-1.4, 0, -2);
             glVertex3f(-1.4, 0, 2);
+            
+            // set material to light colour wood for next two vertices
+            // in order to achieve shading, and give the effect of planks
+            set_material(10);
+    
             glVertex3f(1.4, 0, 2);
             glVertex3f(1.4, 0, -2);
         glEnd();
     glPopMatrix();
+    
+    set_material(2);
     
     // draw 4 wooden pillars
     glPushMatrix();
@@ -180,211 +191,245 @@ void schematics::draw_reference(){
 }
 
 
-// draw a sailboat
+// draw a sailboat using complex display lists
+// boat display list is made up of hull, seats, and masy
+// display lists
 void schematics::draw_boat(){
     
-    // set material properties
-    set_material(0);
+    // glGenLists generates an empty display list
+    GLuint boat, hull, seats, mast;
+    boat = glGenLists(1);
+    hull = glGenLists(1);
+    seats = glGenLists(1);
+    mast = glGenLists(1);
+
     
-    // draw bottom of boat
-    glPushMatrix();
-        glBegin (GL_POLYGON);
-            // calculate v2, v1
-            vector3 v1 = vector3(
-                 bottom_boat_coords[1][0] - bottom_boat_coords[0][0],
-                 bottom_boat_coords[1][1] - bottom_boat_coords[0][1],
-                 bottom_boat_coords[1][2] - bottom_boat_coords[0][2]);
-            vector3 v2 = vector3(
-                 bottom_boat_coords[2][0] - bottom_boat_coords[1][0],
-                 bottom_boat_coords[2][1] - bottom_boat_coords[1][1],
-                 bottom_boat_coords[2][2] - bottom_boat_coords[1][2]);
-            vector3 normal = v1.cross(v2).normalize();
-            // set normal using vector cross product
-            glNormal3f(normal.x, normal.y, normal.z);
-            glVertex3fv(bottom_boat_coords[0]);
-            glVertex3fv(bottom_boat_coords[1]);
-            glVertex3fv(bottom_boat_coords[2]);
-            glVertex3fv(bottom_boat_coords[3]);
-            glVertex3fv(bottom_boat_coords[4]);
-            glVertex3fv(bottom_boat_coords[5]);
-        glEnd();
-    glPopMatrix();
+    // display list for boat hull
+    glNewList(hull, GL_COMPILE);
     
-    // draw 6 sides of boat, and specify normals
-    glPushMatrix();
-        glBegin (GL_POLYGON);
-            // calculate v2, v1
-            v1 = vector3(
-                 bottom_boat_coords[1][0] - bottom_boat_coords[0][0],
-                 bottom_boat_coords[1][1] - bottom_boat_coords[0][1],
-                 bottom_boat_coords[1][2] - bottom_boat_coords[0][2]);
-            v2 = vector3(
-                 top_boat_coords[1][0] - bottom_boat_coords[1][0],
-                 top_boat_coords[1][1] - bottom_boat_coords[1][1],
-                 top_boat_coords[1][2] - bottom_boat_coords[1][2]);
-            normal = v1.cross(v2).normalize();
-            // set normal using vector cross product
-            glNormal3f(normal.x, normal.y, normal.z);
-            glVertex3fv(bottom_boat_coords[0]);
-            glVertex3fv(bottom_boat_coords[1]);
-            glVertex3fv(top_boat_coords[1]);
-            glVertex3fv(top_boat_coords[0]);
-        glEnd();
-    glPopMatrix();
+        // set material properties
+        set_material(0);
+        
+        // draw bottom of boat
+        glPushMatrix();
+            glBegin (GL_POLYGON);
+                // calculate v2, v1
+                vector3 v1 = vector3(
+                     bottom_boat_coords[1][0] - bottom_boat_coords[0][0],
+                     bottom_boat_coords[1][1] - bottom_boat_coords[0][1],
+                     bottom_boat_coords[1][2] - bottom_boat_coords[0][2]);
+                vector3 v2 = vector3(
+                     bottom_boat_coords[2][0] - bottom_boat_coords[1][0],
+                     bottom_boat_coords[2][1] - bottom_boat_coords[1][1],
+                     bottom_boat_coords[2][2] - bottom_boat_coords[1][2]);
+                vector3 normal = v1.cross(v2).normalize();
+                // set normal using vector cross product
+                glNormal3f(normal.x, normal.y, normal.z);
+                glVertex3fv(bottom_boat_coords[0]);
+                glVertex3fv(bottom_boat_coords[1]);
+                glVertex3fv(bottom_boat_coords[2]);
+                glVertex3fv(bottom_boat_coords[3]);
+                glVertex3fv(bottom_boat_coords[4]);
+                glVertex3fv(bottom_boat_coords[5]);
+            glEnd();
+        glPopMatrix();
+        
+        // draw 6 sides of boat, and specify normals
+        glPushMatrix();
+            glBegin (GL_POLYGON);
+                // calculate v2, v1
+                v1 = vector3(
+                     bottom_boat_coords[1][0] - bottom_boat_coords[0][0],
+                     bottom_boat_coords[1][1] - bottom_boat_coords[0][1],
+                     bottom_boat_coords[1][2] - bottom_boat_coords[0][2]);
+                v2 = vector3(
+                     top_boat_coords[1][0] - bottom_boat_coords[1][0],
+                     top_boat_coords[1][1] - bottom_boat_coords[1][1],
+                     top_boat_coords[1][2] - bottom_boat_coords[1][2]);
+                normal = v1.cross(v2).normalize();
+                // set normal using vector cross product
+                glNormal3f(normal.x, normal.y, normal.z);
+                glVertex3fv(bottom_boat_coords[0]);
+                glVertex3fv(bottom_boat_coords[1]);
+                glVertex3fv(top_boat_coords[1]);
+                glVertex3fv(top_boat_coords[0]);
+            glEnd();
+        glPopMatrix();
+        
+        glPushMatrix();
+            glBegin (GL_POLYGON);
+                // calculate v2, v1
+                v1 = vector3(
+                     bottom_boat_coords[1][0] - bottom_boat_coords[2][0],
+                     bottom_boat_coords[1][1] - bottom_boat_coords[2][1],
+                     bottom_boat_coords[1][2] - bottom_boat_coords[2][2]);
+                v2 = vector3(
+                     top_boat_coords[2][0] - bottom_boat_coords[2][0],
+                     top_boat_coords[2][1] - bottom_boat_coords[2][1],
+                     top_boat_coords[2][2] - bottom_boat_coords[2][2]);
+                normal = v2.cross(v1).normalize();
+                // set normal using vector cross product
+                glNormal3f(normal.x, normal.y, normal.z);
+                glVertex3fv(bottom_boat_coords[1]);
+                glVertex3fv(bottom_boat_coords[2]);
+                glVertex3fv(top_boat_coords[2]);
+                glVertex3fv(top_boat_coords[1]);
+            glEnd();
+        glPopMatrix();
+        
+        glPushMatrix();
+            glBegin (GL_POLYGON);
+                // calculate v2, v1
+                v1 = vector3(
+                     bottom_boat_coords[3][0] - bottom_boat_coords[2][0],
+                     bottom_boat_coords[3][1] - bottom_boat_coords[2][1],
+                     bottom_boat_coords[3][2] - bottom_boat_coords[2][2]);
+                v2 = vector3(
+                     top_boat_coords[2][0] - bottom_boat_coords[2][0],
+                     top_boat_coords[2][1] - bottom_boat_coords[2][1],
+                     top_boat_coords[2][2] - bottom_boat_coords[2][2]);
+                normal = v1.cross(v2).normalize();
+                // set normal using vector cross product
+                glNormal3f(normal.x, normal.y, normal.z);
+                glVertex3fv(bottom_boat_coords[2]);
+                glVertex3fv(bottom_boat_coords[3]);
+                glVertex3fv(top_boat_coords[3]);
+                glVertex3fv(top_boat_coords[2]);
+            glEnd();
+        glPopMatrix();
+        
+        glPushMatrix();
+            glBegin (GL_POLYGON);
+                // calculate v2, v1
+                v1 = vector3(
+                     bottom_boat_coords[3][0] - bottom_boat_coords[4][0],
+                     bottom_boat_coords[3][1] - bottom_boat_coords[4][1],
+                     bottom_boat_coords[3][2] - bottom_boat_coords[4][2]);
+                v2 = vector3(
+                     top_boat_coords[4][0] - bottom_boat_coords[3][0],
+                     top_boat_coords[4][1] - bottom_boat_coords[3][1],
+                     top_boat_coords[4][2] - bottom_boat_coords[3][2]);
+                normal = v2.cross(v1).normalize();
+                // set normal using vector cross product
+                glNormal3f(normal.x, normal.y, normal.z);
+                glVertex3fv(bottom_boat_coords[3]);
+                glVertex3fv(bottom_boat_coords[4]);
+                glVertex3fv(top_boat_coords[4]);
+                glVertex3fv(top_boat_coords[3]);
+            glEnd();
+        glPopMatrix();
+        
+        glPushMatrix();
+            glBegin (GL_POLYGON);
+                // calculate v2, v1
+                v1 = vector3(
+                     bottom_boat_coords[4][0] - bottom_boat_coords[5][0],
+                     bottom_boat_coords[4][1] - bottom_boat_coords[5][1],
+                     bottom_boat_coords[4][2] - bottom_boat_coords[5][2]);
+                v2 = vector3(
+                     top_boat_coords[5][0] - bottom_boat_coords[5][0],
+                     top_boat_coords[5][1] - bottom_boat_coords[5][1],
+                     top_boat_coords[5][2] - bottom_boat_coords[5][2]);
+                normal = v2.cross(v1).normalize();
+                // set normal using vector cross product
+                glNormal3f(normal.x, normal.y, normal.z);
+                glVertex3fv(bottom_boat_coords[4]);
+                glVertex3fv(bottom_boat_coords[5]);
+                glVertex3fv(top_boat_coords[5]);
+                glVertex3fv(top_boat_coords[4]);
+            glEnd();
+        glPopMatrix();
+        
+        glPushMatrix();
+            glBegin (GL_POLYGON);
+                // calculate v2, v1
+                v1 = vector3(
+                     bottom_boat_coords[5][0] - bottom_boat_coords[0][0],
+                     bottom_boat_coords[5][1] - bottom_boat_coords[0][1],
+                     bottom_boat_coords[5][2] - bottom_boat_coords[0][2]);
+                v2 = vector3(
+                     top_boat_coords[0][0] - bottom_boat_coords[0][0],
+                     top_boat_coords[0][1] - bottom_boat_coords[0][1],
+                     top_boat_coords[0][2] - bottom_boat_coords[0][2]);
+                normal = v2.cross(v1).normalize();
+                // set normal using vector cross product
+                glNormal3f(normal.x, normal.y, normal.z);
+                glVertex3fv(bottom_boat_coords[5]);
+                glVertex3fv(bottom_boat_coords[0]);
+                glVertex3fv(top_boat_coords[0]);
+                glVertex3fv(top_boat_coords[5]);
+            glEnd();
+        glPopMatrix();
     
-    glPushMatrix();
-        glBegin (GL_POLYGON);
-            // calculate v2, v1
-            v1 = vector3(
-                 bottom_boat_coords[1][0] - bottom_boat_coords[2][0],
-                 bottom_boat_coords[1][1] - bottom_boat_coords[2][1],
-                 bottom_boat_coords[1][2] - bottom_boat_coords[2][2]);
-            v2 = vector3(
-                 top_boat_coords[2][0] - bottom_boat_coords[2][0],
-                 top_boat_coords[2][1] - bottom_boat_coords[2][1],
-                 top_boat_coords[2][2] - bottom_boat_coords[2][2]);
-            normal = v2.cross(v1).normalize();
-            // set normal using vector cross product
-            glNormal3f(normal.x, normal.y, normal.z);
-            glVertex3fv(bottom_boat_coords[1]);
-            glVertex3fv(bottom_boat_coords[2]);
-            glVertex3fv(top_boat_coords[2]);
-            glVertex3fv(top_boat_coords[1]);
-        glEnd();
-    glPopMatrix();
+    glEndList();
     
-    glPushMatrix();
-        glBegin (GL_POLYGON);
-            // calculate v2, v1
-            v1 = vector3(
-                 bottom_boat_coords[3][0] - bottom_boat_coords[2][0],
-                 bottom_boat_coords[3][1] - bottom_boat_coords[2][1],
-                 bottom_boat_coords[3][2] - bottom_boat_coords[2][2]);
-            v2 = vector3(
-                 top_boat_coords[2][0] - bottom_boat_coords[2][0],
-                 top_boat_coords[2][1] - bottom_boat_coords[2][1],
-                 top_boat_coords[2][2] - bottom_boat_coords[2][2]);
-            normal = v1.cross(v2).normalize();
-            // set normal using vector cross product
-            glNormal3f(normal.x, normal.y, normal.z);
-            glVertex3fv(bottom_boat_coords[2]);
-            glVertex3fv(bottom_boat_coords[3]);
-            glVertex3fv(top_boat_coords[3]);
-            glVertex3fv(top_boat_coords[2]);
-        glEnd();
-    glPopMatrix();
+    // display list for boat seats
+    glNewList(seats, GL_COMPILE);
+        
+        // draw boat seats
+        glPushMatrix();
+            glBegin(GL_POLYGON);
+                // set custom normal to look different than boat bottom
+                glNormal3f(0,0.8,0);
+                glVertex3fv(top_boat_coords[5]);
+                glVertex3fv(boat_seat_coords[0]);
+                glVertex3fv(boat_seat_coords[3]);
+                glVertex3fv(top_boat_coords[3]);
+            glEnd();
+        glPopMatrix();
+        
+        glPushMatrix();
+            glBegin(GL_POLYGON);
+                // set custom normal to look different than boat bottom
+                glNormal3f(0,0.8,0);
+                glVertex3fv(top_boat_coords[0]);
+                glVertex3fv(top_boat_coords[2]);
+                glVertex3fv(boat_seat_coords[2]);
+                glVertex3fv(boat_seat_coords[1]);
+            glEnd();
+        glPopMatrix();
     
-    glPushMatrix();
-        glBegin (GL_POLYGON);
-            // calculate v2, v1
-            v1 = vector3(
-                 bottom_boat_coords[3][0] - bottom_boat_coords[4][0],
-                 bottom_boat_coords[3][1] - bottom_boat_coords[4][1],
-                 bottom_boat_coords[3][2] - bottom_boat_coords[4][2]);
-            v2 = vector3(
-                 top_boat_coords[4][0] - bottom_boat_coords[3][0],
-                 top_boat_coords[4][1] - bottom_boat_coords[3][1],
-                 top_boat_coords[4][2] - bottom_boat_coords[3][2]);
-            normal = v2.cross(v1).normalize();
-            // set normal using vector cross product
-            glNormal3f(normal.x, normal.y, normal.z);
-            glVertex3fv(bottom_boat_coords[3]);
-            glVertex3fv(bottom_boat_coords[4]);
-            glVertex3fv(top_boat_coords[4]);
-            glVertex3fv(top_boat_coords[3]);
-        glEnd();
-    glPopMatrix();
+    glEndList();
     
-    glPushMatrix();
-        glBegin (GL_POLYGON);
-            // calculate v2, v1
-            v1 = vector3(
-                 bottom_boat_coords[4][0] - bottom_boat_coords[5][0],
-                 bottom_boat_coords[4][1] - bottom_boat_coords[5][1],
-                 bottom_boat_coords[4][2] - bottom_boat_coords[5][2]);
-            v2 = vector3(
-                 top_boat_coords[5][0] - bottom_boat_coords[5][0],
-                 top_boat_coords[5][1] - bottom_boat_coords[5][1],
-                 top_boat_coords[5][2] - bottom_boat_coords[5][2]);
-            normal = v2.cross(v1).normalize();
-            // set normal using vector cross product
-            glNormal3f(normal.x, normal.y, normal.z);
-            glVertex3fv(bottom_boat_coords[4]);
-            glVertex3fv(bottom_boat_coords[5]);
-            glVertex3fv(top_boat_coords[5]);
-            glVertex3fv(top_boat_coords[4]);
-        glEnd();
-    glPopMatrix();
+    // display list for boat mast
+    glNewList(mast, GL_COMPILE);
+        
+        // draw mast
+        glPushMatrix();
+            glScalef(0.2, 6, 0.2);
+            draw_cylinder();
+        glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(0,3,0);
+            glRotated(90, 1, 0, 0);
+            glRotatef(140, 0, 0, 1);
+            glScalef(0.2, 3, 0.2);
+            draw_cylinder();
+        glPopMatrix();
+        
+        set_material(1);
+        
+        // draw sail
+        glPushMatrix();
+            glRotatef(-140, 0, 1, 0);
+            glBegin(GL_TRIANGLES);
+                glVertex3f(0, 6, 0);
+                glVertex3f(0, 3, 3);
+                glVertex3f(0, 3, 0);
+            glEnd();
+        glPopMatrix();
     
-    glPushMatrix();
-        glBegin (GL_POLYGON);
-            // calculate v2, v1
-            v1 = vector3(
-                 bottom_boat_coords[5][0] - bottom_boat_coords[0][0],
-                 bottom_boat_coords[5][1] - bottom_boat_coords[0][1],
-                 bottom_boat_coords[5][2] - bottom_boat_coords[0][2]);
-            v2 = vector3(
-                 top_boat_coords[0][0] - bottom_boat_coords[0][0],
-                 top_boat_coords[0][1] - bottom_boat_coords[0][1],
-                 top_boat_coords[0][2] - bottom_boat_coords[0][2]);
-            normal = v2.cross(v1).normalize();
-            // set normal using vector cross product
-            glNormal3f(normal.x, normal.y, normal.z);
-            glVertex3fv(bottom_boat_coords[5]);
-            glVertex3fv(bottom_boat_coords[0]);
-            glVertex3fv(top_boat_coords[0]);
-            glVertex3fv(top_boat_coords[5]);
-        glEnd();
-    glPopMatrix();
+    glEndList();
     
-    // draw boat seats
-    glPushMatrix();
-        glBegin(GL_POLYGON);
-            // set custom normal to look different than boat bottom
-            glNormal3f(0,0.8,0);
-            glVertex3fv(top_boat_coords[5]);
-            glVertex3fv(boat_seat_coords[0]);
-            glVertex3fv(boat_seat_coords[3]);
-            glVertex3fv(top_boat_coords[3]);
-        glEnd();
-    glPopMatrix();
-    
-    glPushMatrix();
-        glBegin(GL_POLYGON);
-            // set custom normal to look different than boat bottom
-            glNormal3f(0,0.8,0);
-            glVertex3fv(top_boat_coords[0]);
-            glVertex3fv(top_boat_coords[2]);
-            glVertex3fv(boat_seat_coords[2]);
-            glVertex3fv(boat_seat_coords[1]);
-        glEnd();
-    glPopMatrix();
-    
-    // draw mast
-    glPushMatrix();
-        glScalef(0.2, 6, 0.2);
-        draw_cylinder();
-    glPopMatrix();
-    
-    glPushMatrix();
-        glTranslatef(0,3,0);
-        glRotated(90, 1, 0, 0);
-        glRotatef(150, 0, 0, 1);
-        glScalef(0.2, 3, 0.2);
-        draw_cylinder();
-    glPopMatrix();
-    
-    set_material(1);
-    
-    // draw sail
-    glPushMatrix();
-        glRotatef(-150, 0, 1, 0);
-        glBegin(GL_TRIANGLES);
-            glVertex3f(0, 6, 0);
-            glVertex3f(0, 3, 3);
-            glVertex3f(0, 3, 0);
-        glEnd();
-    glPopMatrix();
+    // complex display list with a call to execute
+    // after compiling
+    glNewList(boat, GL_COMPILE_AND_EXECUTE);
+        // draw all the parts of the boat
+        glCallList(hull);
+        glCallList(seats);
+        glCallList(mast);
+    glEndList();
 }
 
 
@@ -467,89 +512,115 @@ void schematics::draw_ground(){
 
 
 // draw the sun with spherical body and cylindrical rays
-void schematics::draw_sun(){
+void schematics::draw_sun(int colour, bool draw_rays){
     
-    //disable fog so that sun appear bright in the sky
+    // disable fog so that sun appear bright in the sky
     glDisable(GL_FOG);
-    set_material(6);
+    set_material(colour);
     
     // draw spherical body
     glPushMatrix();
         glutSolidSphere(4, 20, 20);
     glPopMatrix();
     
-    // draw rays
-    set_material(7);
-    for(int i = 0; i < 20; ++i){
-        glPushMatrix();
-            glRotatef(18 * i, 0, 0, 1);
-            glScalef(0.2, 8, 0.2);
-            draw_cylinder();
-        glPopMatrix();
+    if (draw_rays){
+        // draw rays
+        for(int i = 0; i < 20; ++i){
+            glPushMatrix();
+                glRotatef(18 * i, 0, 0, 1);
+                glScalef(0.2, 8, 0.2);
+                draw_cylinder();
+            glPopMatrix();
+        }
     }
     glEnable(GL_FOG);
 }
 
 
-// draw the lighthouse
+// draw the lighthouse using complex display lists
+// lighthouse display list is made up of body and top
+// display lists
 void schematics::draw_lighthouse(){
+    
+    // glGenLists generates an empty display list
+    GLuint body, top, lighthouse;
+    body = glGenLists(1);
+    top = glGenLists(1);
+    lighthouse = glGenLists(1);
+    
+    // display list for the body
+    glNewList(body, GL_COMPILE);
 
-    // draw red and grey concentric cylinders for tower
-    set_material(9);
-    glPushMatrix();
-        glScalef(3,2,3);
-        draw_cylinder();
-    glPopMatrix();
+        // draw red and grey concentric cylinders for tower
+        set_material(9);
+        glPushMatrix();
+            glScalef(3,2,3);
+            draw_cylinder();
+        glPopMatrix();
 
-    set_material(8);
-    glPushMatrix();
-        glTranslatef(0,2,0);
-        glScalef(2.8,2,2.8);
-        draw_cylinder();
-    glPopMatrix();
-    
-    set_material(9);
-    glPushMatrix();
-        glTranslatef(0,4,0);
-        glScalef(2.6,2,2.6);
-        draw_cylinder();
-    glPopMatrix();
+        set_material(8);
+        glPushMatrix();
+            glTranslatef(0,2,0);
+            glScalef(2.8,2,2.8);
+            draw_cylinder();
+        glPopMatrix();
+        
+        set_material(9);
+        glPushMatrix();
+            glTranslatef(0,4,0);
+            glScalef(2.6,2,2.6);
+            draw_cylinder();
+        glPopMatrix();
 
-    set_material(8);
-    glPushMatrix();
-        glTranslatef(0,6,0);
-        glScalef(2.4,2,2.4);
-        draw_cylinder();
-    glPopMatrix();
+        set_material(8);
+        glPushMatrix();
+            glTranslatef(0,6,0);
+            glScalef(2.4,2,2.4);
+            draw_cylinder();
+        glPopMatrix();
+        
+        set_material(9);
+        glPushMatrix();
+            glTranslatef(0,8,0);
+            glScalef(2.2,2,2.2);
+            draw_cylinder();
+        glPopMatrix();
+        
+    glEndList();
+        
+    // display list for the top
+    glNewList(top, GL_COMPILE);
+        
+        // draw yellow center as a torus to appear rounded
+        set_material(11);
+        glPushMatrix();
+            glTranslatef(0,11,0);
+            glScalef(1,1.5,1);
+            glRotatef(90, 1, 0, 0);
+            glutSolidTorus(1, 1, 20, 20);
+        glPopMatrix();
+        
+        // draw roof as a cone and cylinder
+        set_material(9);
+        glPushMatrix();
+            glTranslatef(0, 12, 0);
+            glRotatef(-90, 1, 0, 0);
+            glutSolidCone(2.5, 2.2, 20, 20);
+        glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(0,12,0);
+            glScalef(0.5, 2.5, 0.5);
+            draw_cylinder();
+        glPopMatrix();
     
-    set_material(9);
-    glPushMatrix();
-        glTranslatef(0,8,0);
-        glScalef(2.2,2,2.2);
-        draw_cylinder();
-    glPopMatrix();
-    
-    // draw yellow center as a torus to appear rounded
-    set_material(7);
-    glPushMatrix();
-        glTranslatef(0,11,0);
-        glScalef(1,1.5,1);
-        glRotatef(90, 1, 0, 0);
-        glutSolidTorus(1, 1, 20, 20);
-    glPopMatrix();
-    
-    // draw roof as a cone and cylinder
-    set_material(9);
-    glPushMatrix();
-        glTranslatef(0, 12, 0);
-        glRotatef(-90, 1, 0, 0);
-        glutSolidCone(2.5, 2.2, 20, 20);
-    glPopMatrix();
-    
-    glPushMatrix();
-        glTranslatef(0,12,0);
-        glScalef(0.5, 2.5, 0.5);
-        draw_cylinder();
-    glPopMatrix();
+    glEndList();
+        
+    // complex display list for the whole lighthouse, with
+    // a call to execute after compiling
+    glNewList(lighthouse, GL_COMPILE_AND_EXECUTE);
+        glCallList(body);
+        glCallList(top);
+    glEndList();
 }
 
