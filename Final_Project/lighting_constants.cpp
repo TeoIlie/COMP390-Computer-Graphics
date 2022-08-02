@@ -104,6 +104,13 @@ void set_material(int option) {
             glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, beacon_shininess);
             glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, beacon_emissive);
             break;
+            
+        // black
+        case 12:
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, black_specular);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, black_diffuse);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, black_shininess);
+            break;
 
     }
     
