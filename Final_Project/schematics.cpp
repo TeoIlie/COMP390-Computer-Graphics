@@ -420,6 +420,17 @@ void schematics::draw_boat(){
             glEnd();
         glPopMatrix();
     
+        set_material(12);
+        glLineWidth(2.5);
+        glPushMatrix();
+            glBegin(GL_LINES);
+                glVertex3fv(bottom_boat_coords[4]);
+                glVertex3f(0,4,0);
+                glVertex3fv(bottom_boat_coords[1]);
+                glVertex3f(0,5,0);
+            glEnd();
+        glPopMatrix();
+    
     glEndList();
     
     // complex display list with a call to execute
@@ -515,7 +526,6 @@ void schematics::draw_ground(){
 void schematics::draw_sun(int colour, bool draw_rays){
     
     // disable fog so that sun appear bright in the sky
-    glDisable(GL_FOG);
     set_material(colour);
     
     // draw spherical body
@@ -533,7 +543,6 @@ void schematics::draw_sun(int colour, bool draw_rays){
             glPopMatrix();
         }
     }
-    glEnable(GL_FOG);
 }
 
 
@@ -609,6 +618,7 @@ void schematics::draw_lighthouse(){
         glPopMatrix();
         
         glPushMatrix();
+            glNormal3f(-1,0,0);
             glTranslatef(0,12,0);
             glScalef(0.5, 2.5, 0.5);
             draw_cylinder();
