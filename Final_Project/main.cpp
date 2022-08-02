@@ -83,8 +83,15 @@ bool midday = true;
 
 // set time objects to control lighthouse spotlight rotation
 clock_t start_time, time_now;
-bool alternate = true;
-int angle = -90;
+
+int lighthouse_angle = -90;
+float spotlight_x = -1;
+float spotlight_z = 0;
+GLfloat spotlight_direction[] = { spotlight_x, -0.05, spotlight_z };
+
+int alternate = 1;
+int ground_x_translate = 3;
+int bob_angle = 2;
 
 /*
  
@@ -173,6 +180,12 @@ void init_display(std::string title) {
 
     // enable depth-buffer visibility-detection routine
     glEnable(GL_DEPTH_TEST);
+    
+    // enable anti-aliasing
+    glEnable(GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_POLYGON_SMOOTH);
 
     // glPolygonMode sets mode to wire frame or solid
     // constant GL_FILL represents a fill polygon, which is what we need here
@@ -194,7 +207,6 @@ void init_lighting(){
     
     // if midday is selected set lighting properties to midday settings
     if(midday){
-        cout << "midday" << endl;
         // set ambient light
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, bright_lmodel_ambient);
 
@@ -221,7 +233,6 @@ void init_lighting(){
     }
     // if sunset is selected set lighting properties to sunset settings
     else {
-        cout << "sunset" << endl;
         // set ambient light
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, dark_lmodel_ambient);
 
@@ -249,9 +260,13 @@ void init_lighting(){
 
     // set light 2 - spotlight emitting from lighthouse
     // note light 2 stays the same irrespective of time of day
-//    glEnable(GL_LIGHT2);
+    glEnable(GL_LIGHT2);
     glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, spotlight_cutoff);
+    
+    spotlight_direction[0] = spotlight_x;
+    spotlight_direction[2] = spotlight_z;
     glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, spotlight_direction);
+    
     glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, 3);
     glLightfv(GL_LIGHT2, GL_POSITION, light_pos_2);
     glLightfv(GL_LIGHT2, GL_DIFFUSE, spotlight_colour);
@@ -311,24 +326,25 @@ void render() {
     glPushMatrix();
     glTranslatef(13, 0.2, 0);
     glRotatef(150.0, 0.0, 1.0, 0.0);
-    glRotatef(1.0, 0.0, 0.0, 1.0);
+    glRotatef(1.0 - bob_angle, 0.0, 0.0, 1.0);
     ob.draw_boat();
     glPopMatrix();
 
     // draw another boat
     glPushMatrix();
-    glTranslatef(1, 0.2, 0);
+    glTranslatef(-1, 0.2, -4);
     glScalef(1, 1, 1);
     glRotatef(130.0, 0.0, 1.0, 0.0);
-    glRotatef(-5.0, 0.0, 0.0, 1.0);
+    glRotatef(-2.0 + bob_angle * 3, 0.0, 0.0, 1.0);
     ob.draw_boat();
     glPopMatrix();
 
     // draw the ground
     glPushMatrix();
     // the large scale creates the impression of a horizon
+    glTranslatef(ground_x_translate, 0, 0);
     glScalef(15, 15, 15);
-    glRotatef(90.0, 0.0, 1.0, 0.0);
+    glRotatef(90, 0.0, 1.0, 0.0);
     ob.draw_ground();
     glPopMatrix();
 
@@ -340,6 +356,8 @@ void render() {
     ob.draw_deck(9);
     glPopMatrix();
 
+    glDisable(GL_LIGHT2);
+    
     // draw two clouds
     glPushMatrix();
     glTranslatef(-5, 10, 5);
@@ -357,6 +375,8 @@ void render() {
     glPopMatrix();
 
     // draw the sun
+    glDisable(GL_FOG);
+    
     glPushMatrix();
     glTranslatef(sun_pos.x, sun_pos.y, sun_pos.z);
     glRotatef(90.0, 0.0, 1.0, 0.0);
@@ -367,10 +387,14 @@ void render() {
     if (midday){ ob.draw_sun(7, true);}
     else { ob.draw_sun(6, false);}
     glPopMatrix();
+    
+    glEnable(GL_FOG);
+    
+    glEnable(GL_LIGHT2);
 
     // draw the lignthouse
     glPushMatrix();
-    glTranslatef(-30, 0, -10);
+    glTranslatef(3, 0, 5);
     glScalef(0.6, 0.6, 0.6);
     ob.draw_lighthouse();
     glPopMatrix();
@@ -395,29 +419,35 @@ void display(void) {
 }
 
 
-// method to spin the lighthouse spotlight
+// method to bob the boats back and forth and
+// simulate splashing waves on the shore
 void spin(){
     time_now = clock();
-    int x, z = 0;
     if (((time_now - start_time) / CLOCKS_PER_SEC) >= 1) {
-        angle += 10;
-//        if (angle >= 5){ angle = -5; }
+        lighthouse_angle += 15;
+        if (lighthouse_angle > 90) {
+            lighthouse_angle = -90;
+        }
         
-        x = cos(angle * PI / 180);
-        z = sin(angle * PI / 180);
-        spotlight_direction[0] = x;
-        spotlight_direction[2] = z;
+        spotlight_z = -cos(lighthouse_angle * PI/180);
+        spotlight_x = sin(lighthouse_angle * PI/180);
         
-        if (alternate) {
-            cout << "if" << endl;
-            cout << angle << endl;
-            alternate = false;
+        alternate += 1;
+        alternate %= 4;
+        
+        if (alternate == 0 || alternate == 2) {
+            ground_x_translate = 0;
+            bob_angle = 0;
         }
 
-        else {
-            cout << "else" << endl;
-            cout << angle << endl;
-            alternate = true;
+        else if (alternate == 1) {
+            ground_x_translate = 3;
+            bob_angle = 2;
+        }
+        
+        else if (alternate == 3) {
+            ground_x_translate = -3;
+            bob_angle = -2;
         }
         start_time = time_now;
         display();
@@ -441,8 +471,6 @@ void reshape(int w, int h) {
 void menu_function(GLint selection) {
     // midday settings
     if (selection == 0) {
-        cout << "selection 0" << endl;
-        
         // set midday to true
         midday = true;
         
@@ -451,8 +479,6 @@ void menu_function(GLint selection) {
     }
     // sunset settings
     if (selection == 1) {
-        cout << "selection 1" << endl;
-        
         // set midday to false
         midday = false;
         
@@ -476,7 +502,7 @@ int main(int argc, char** argv) {
     // display
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-//    glutIdleFunc(spin);
+    glutIdleFunc(spin);
     
     // add menu to change atmospheric effects
     glutCreateMenu(menu_function);
