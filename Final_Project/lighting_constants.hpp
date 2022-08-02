@@ -39,10 +39,9 @@ static const GLfloat bright_sun_light[] = { 0.8, 0.467, 0.133, 1.0 };
 static const GLfloat dark_sun_light[] = { 0.98, 0.372, 0.333, 1.0 };
 
 // light 2 - TWEAK SOME MORE
-static const GLfloat light_pos_2[] = { -30, 18.3, -10, 1.0 };
-static const GLfloat spotlight_colour[] = { 1, 1, 0, 1.0 };
-static const GLfloat spotlight_cutoff = 40.0;
-static GLfloat spotlight_direction[] = { 1, -0.1, 0 };
+static const GLfloat light_pos_2[] = { 3, 6.6, 5, 1.0 };
+static const GLfloat spotlight_colour[] = { 1, 0.918, 0, 1.0 };
+static const GLfloat spotlight_cutoff = 50.0;
 
 // ambient
 static const GLfloat bright_lmodel_ambient[] = { 0.7, 0.7, 0.71, 1.0 };
@@ -115,10 +114,15 @@ static const GLfloat wood3_specular[] = {0.580594, 0.223257, 0.0695701, 1.0};
 static const GLfloat wood3_shininess[] = {5};
 
 //lighthous beacon constants
-static const GLfloat beacon_ambient[] = { 1, 1, 0, 1 };
-static const GLfloat beacon_specular[] = { 1, 1, 0, 1 };
-static const GLfloat beacon_shininess[] = { 70 };
-static const GLfloat beacon_emissive[] = {1, 1, 0, 0};
+static const GLfloat beacon_ambient[] = { 1, 0.918, 0, 1 };
+static const GLfloat beacon_specular[] = { 1, 0, 0, 1 };
+static const GLfloat beacon_shininess[] = { 100 };
+static const GLfloat beacon_emissive[] = {1, 1, 1, 0};
+
+// black rope constants
+static const GLfloat black_diffuse[] = {0.361, 0.251, 0.2, 1};
+static const GLfloat black_specular[] = {0.361, 0.251, 0.2, 1};
+static const GLfloat black_shininess[] = {100};
 
 static const GLfloat non_emissive[] = { 0.0, 0.0, 0.0, 1.0};
 
